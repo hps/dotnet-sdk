@@ -372,6 +372,15 @@ namespace GlobalPayments.Api.Gateways {
                     et.SubElement(cpc, "TaxType", builder.TaxType.ToString());
                     et.SubElement(cpc, "TaxAmt", builder.TaxAmount);
                 }
+
+                if (builder.TransactionType == TransactionType.Refund || builder.TransactionType == TransactionType.Reversal) {
+                    if (!string.IsNullOrEmpty(builder.CustomerId) || !string.IsNullOrEmpty(builder.Description) || !string.IsNullOrEmpty(builder.InvoiceNumber)) {
+                        var addons = et.SubElement(root, "AdditionalTxnFields");
+                        et.SubElement(addons, "CustomerID", builder.CustomerId);
+                        et.SubElement(addons, "Description", builder.Description);
+                        et.SubElement(addons, "InvoiceNbr", builder.InvoiceNumber);
+                    }
+                }
             }
 
             var response = DoTransaction(BuildEnvelope(et, transaction, builder.ClientTransactionId));
@@ -487,7 +496,7 @@ namespace GlobalPayments.Api.Gateways {
                 result.AvailableBalance = root.GetValue<decimal>("AvailableBalance");
                 result.AvsResponseCode = root.GetValue<string>("AVSRsltCode");
                 result.AvsResponseMessage = root.GetValue<string>("AVSRsltText");
-                result.BalanceAmount = root.GetValue<decimal>("BalanceAmt");
+                result.BalanceAmount = root.GetValue<decimal>("BalanceAmt", "AvailableBalance");
                 result.CardType = root.GetValue<string>("CardType");
                 result.CardLast4 = root.GetValue<string>("TokenPANLast4");
                 result.CavvResponseCode = root.GetValue<string>("CAVVResultCode");

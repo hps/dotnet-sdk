@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using GlobalPayments.Api.Entities;
 using GlobalPayments.Api.PaymentMethods;
 using GlobalPayments.Api.Services;
@@ -105,6 +106,12 @@ namespace GlobalPayments.Api.Tests.Portico {
                 }).Create();
             Assert.IsNotNull(payment);
             Assert.IsNotNull(payment.Key);
+
+            customer = Customer.Find(CustomerId);
+            Assert.IsNotNull(customer);
+            Assert.IsTrue(customer.PaymentMethods.Count > 0);
+
+            Assert.IsNotNull(customer.PaymentMethods.First(p => p.Key == payment.Key));
         }
 
         [TestMethod, Ignore]
@@ -248,6 +255,18 @@ namespace GlobalPayments.Api.Tests.Portico {
         }
 
         [TestMethod]
+        public void Test_002d_FindCustomerFindNullKey() {
+            var customer = Customer.Find(null);
+            Assert.IsNull(customer);
+        }
+
+        [TestMethod]
+        public void Test_0023_FindCustomerFindInvalidKey() {
+            var customer = Customer.Find("1");
+            Assert.IsNull(customer);
+        }
+
+        [TestMethod]
         public void Test_003a_FindAllCustomers() {
             var customers = Customer.FindAll();
             Assert.IsNotNull(customers);
@@ -344,6 +363,7 @@ namespace GlobalPayments.Api.Tests.Portico {
 
             var response = paymentMethod.Charge(9m)
                 .WithCurrency("USD")
+                .WithShippingAmt(5m)
                 .Execute();
             Assert.IsNotNull(response);
             Assert.AreEqual("00", response.ResponseCode);
@@ -449,6 +469,7 @@ namespace GlobalPayments.Api.Tests.Portico {
 
             customer.Delete();
         }
+
         [TestMethod]
         public void Test_008g_CreditCharge_WithNewCryptoURL() {
             ServicesContainer.ConfigureService(new GatewayConfig

@@ -131,9 +131,9 @@ namespace GlobalPayments.Api.Utils {
             if (_dict.ContainsKey(name)) {
                 if (_dict[name] is IEnumerable<JsonDoc>)
                     return (IEnumerable<JsonDoc>)_dict[name];
-                return null;
+                return new List<JsonDoc>();
             }
-            return null;
+            return new List<JsonDoc>();
         }
 
         public IEnumerable<T> GetArray<T>(string name) {

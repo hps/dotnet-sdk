@@ -6,6 +6,7 @@ using GlobalPayments.Api.Entities;
 using GlobalPayments.Api.Terminals;
 using System.Globalization;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 
 namespace GlobalPayments.Api.Utils {
     public static class Extensions {
@@ -22,7 +23,7 @@ namespace GlobalPayments.Api.Utils {
         }
 
         public static string ToNumericCurrencyString(this decimal? dec) {
-            if(dec != null)
+            if (dec != null)
                 return Regex.Replace(string.Format("{0:c}", dec), "[^0-9]", "");
             return null;
         }
@@ -46,35 +47,81 @@ namespace GlobalPayments.Api.Utils {
         public static byte[] GetTerminalResponse(this NetworkStream stream) {
             var buffer = new byte[4096];
             int bytesReceived = stream.ReadAsync(buffer, 0, buffer.Length).Result;
-
-            byte[] readBuffer = new byte[bytesReceived];
-            Array.Copy(buffer, readBuffer, bytesReceived);
-
-            var code = (ControlCodes)readBuffer[0];
-            if (code == ControlCodes.NAK)
-                return null;
-            else if (code == ControlCodes.EOT)
-                throw new MessageException("Terminal returned EOT for the current message.");
-            else if (code == ControlCodes.ACK) {
-                return stream.GetTerminalResponse();
+            if (bytesReceived <= 0) {
+                bytesReceived = stream.ReadAsync(buffer, 0, buffer.Length).Result;
             }
-            else if (code == ControlCodes.STX) {
-                var queue = new Queue<byte>(readBuffer);
 
-                // break off only one message
-                var rec_buffer = new List<byte>();
-                do {
-                    rec_buffer.Add(queue.Dequeue());
-                    if (rec_buffer[rec_buffer.Count - 1] == (byte)ControlCodes.ETX)
-                        break;
+            if (bytesReceived > 0) {
+                byte[] readBuffer = new byte[bytesReceived];
+                Array.Copy(buffer, readBuffer, bytesReceived);
+
+                var code = (ControlCodes)readBuffer[0];
+                if (code == ControlCodes.NAK)
+                    return null;
+                else if (code == ControlCodes.EOT)
+                    throw new MessageException("Terminal returned EOT for the current message.");
+                else if (code == ControlCodes.ACK) {
+                    return stream.GetTerminalResponse();
                 }
-                while (true);
+                else if (code == ControlCodes.STX) {
+                    var queue = new Queue<byte>(readBuffer);
 
-                // Should be the LRC
-                rec_buffer.Add(queue.Dequeue());
-                return rec_buffer.ToArray();
+                    // break off only one message
+                    var rec_buffer = new List<byte>();
+                    do {
+                        rec_buffer.Add(queue.Dequeue());
+                        if (rec_buffer[rec_buffer.Count - 1] == (byte)ControlCodes.ETX)
+                            break;
+                    }
+                    while (queue.Count > 0);
+
+                    // Should be the LRC
+                    if (queue.Count > 0) {
+                        rec_buffer.Add(queue.Dequeue());
+                    }
+                    return rec_buffer.ToArray();
+                }
+                else throw new MessageException(string.Format("Unknown message received: {0}", code));
             }
-            else throw new MessageException(string.Format("Unknown message received: {0}", code));
+            return null;
+        }
+        public static byte[] GetTerminalResponseAsync(this NetworkStream stream) {
+            var buffer = new byte[4096];
+            int bytesReceived = stream.ReadAsync(buffer, 0, buffer.Length).Result;
+            
+            if (bytesReceived > 0) {
+                byte[] readBuffer = new byte[bytesReceived];
+                Array.Copy(buffer, readBuffer, bytesReceived);
+
+                var code = (ControlCodes)readBuffer[0];
+                if (code == ControlCodes.NAK)
+                    return null;
+                else if (code == ControlCodes.EOT)
+                    throw new MessageException("Terminal returned EOT for the current message.");
+                else if (code == ControlCodes.ACK) {
+                    return stream.GetTerminalResponse();
+                }
+                else if (code == ControlCodes.STX) {
+                    var queue = new Queue<byte>(readBuffer);
+
+                    // break off only one message
+                    var rec_buffer = new List<byte>();
+                    do {
+                        rec_buffer.Add(queue.Dequeue());
+                        if (rec_buffer[rec_buffer.Count - 1] == (byte)ControlCodes.ETX)
+                            break;
+                    }
+                    while (queue.Count > 0);
+
+                    // Should be the LRC
+                    if (queue.Count > 0) {
+                        rec_buffer.Add(queue.Dequeue());
+                    }
+                    return rec_buffer.ToArray();
+                }
+                else throw new MessageException(string.Format("Unknown message received: {0}", code));
+            }
+            return null;
         }
 
         public static int? ToInt32(this string str) {
