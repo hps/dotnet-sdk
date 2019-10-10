@@ -1,26 +1,22 @@
-﻿using System;
-using System.Threading;
+﻿using System.Threading;
 using GlobalPayments.Api.Entities;
 using GlobalPayments.Api.Services;
 using GlobalPayments.Api.Terminals;
-using GlobalPayments.Api.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace GlobalPayments.Api.Tests.Terminals.HPA
-{
+namespace GlobalPayments.Api.Tests.Terminals.HPA {
     [TestClass]
-    public class HpaCreditTests
-    {
+    public class HpaCreditTests {
         IDeviceInterface _device;
-        public HpaCreditTests() { 
-            _device = DeviceService.Create(new ConnectionConfig
-            {
+        public HpaCreditTests() {
+            _device = DeviceService.Create(new ConnectionConfig {
                 DeviceType = DeviceType.HPA_ISC250,
                 ConnectionMode = ConnectionModes.TCP_IP,
-                IpAddress = "10.12.220.39",
+                //IpAddress = "10.12.220.39",
+                IpAddress = "192.168.0.94",
                 Port = "12345",
                 Timeout = 30000,
-                RequestIdProvider = new RequestIdProvider()
+                RequestIdProvider = new RandomIdProvider()
             });
             Assert.IsNotNull(_device);
             _device.OpenLane();
@@ -34,11 +30,12 @@ namespace GlobalPayments.Api.Tests.Terminals.HPA
 
         [TestMethod]
         public void CreditSale() {
-            _device.OnMessageSent += (message) =>
-            {
+            _device.OnMessageSent += (message) => {
                 Assert.IsNotNull(message);
             };
+
             var response = _device.CreditSale(10m)
+               .WithGratuity(0m)
                .Execute();
             Assert.IsNotNull(response);
             Assert.AreEqual("00", response.ResponseCode);
@@ -46,8 +43,7 @@ namespace GlobalPayments.Api.Tests.Terminals.HPA
 
         [TestMethod]
         public void CreditSaleWithSignatureCapture() {
-            _device.OnMessageSent += (message) =>
-            {
+            _device.OnMessageSent += (message) => {
                 Assert.IsNotNull(message);
             };
             var response = _device.CreditSale(12m)
@@ -64,8 +60,7 @@ namespace GlobalPayments.Api.Tests.Terminals.HPA
 
         [TestMethod]
         public void CreditAuth() {
-            _device.OnMessageSent += (message) =>
-            {
+            _device.OnMessageSent += (message) => {
                 Assert.IsNotNull(message);
             };
             var response = _device.CreditAuth(12m)
@@ -94,8 +89,7 @@ namespace GlobalPayments.Api.Tests.Terminals.HPA
 
         [TestMethod]
         public void CreditRefundByCard() {
-            _device.OnMessageSent += (message) =>
-            {
+            _device.OnMessageSent += (message) => {
                 Assert.IsNotNull(message);
             };
             var returnResponse = _device.CreditRefund(14m).Execute();
@@ -117,8 +111,7 @@ namespace GlobalPayments.Api.Tests.Terminals.HPA
 
         [TestMethod]
         public void CreditVerify() {
-            _device.OnMessageSent += (message) =>
-            {
+            _device.OnMessageSent += (message) => {
                 Assert.IsNotNull(message);
             };
             var response = _device.CreditVerify().Execute();
@@ -129,8 +122,7 @@ namespace GlobalPayments.Api.Tests.Terminals.HPA
         [TestMethod]
         public void CreditVoid() {
             var str_message = string.Empty;
-            _device.OnMessageSent += (message) =>
-            {
+            _device.OnMessageSent += (message) => {
                 str_message = message;
                 Assert.IsNotNull(message);
             };
@@ -156,6 +148,25 @@ namespace GlobalPayments.Api.Tests.Terminals.HPA
             var response = _device.StartCard(PaymentMethodType.Credit);
             Assert.IsNotNull(response);
             Assert.AreEqual("00", response.DeviceResponseCode);
+        }
+
+        [TestMethod]
+        public void LostTransactionRecovery() {
+            var requestId = new RandomIdProvider().GetRequestId();
+
+            var response = _device.CreditSale(10m)
+                .WithRequestId(requestId)
+                .Execute();
+            Assert.IsNotNull(response);
+            Assert.AreEqual("00", response.ResponseCode);
+            WaitAndReset();
+
+            var duplicateResponse = _device.CreditSale(10m)
+                .WithRequestId(requestId)
+                .Execute();
+            Assert.IsNotNull(duplicateResponse);
+            Assert.AreEqual("00", duplicateResponse.ResponseCode);
+            Assert.AreEqual(response.AuthorizationCode, duplicateResponse.AuthorizationCode);
         }
     }
 }

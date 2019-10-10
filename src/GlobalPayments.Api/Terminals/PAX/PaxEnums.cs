@@ -206,8 +206,7 @@ namespace GlobalPayments.Api.Terminals.PAX {
         public static string TOKEN = "TOKEN";
         public static string CARD_TYPE = "CARDTYPE";
         public static string CARD_TYPE_BITMAP = "CARDTYPEBITMAP";
-        // TODO: This will probably come in a later release
-        //public static string PASS_THROUGH_DATA = "PASSTHRUDATA";
+        public static string PASS_THROUGH_DATA = "PASSTHRUDATA";
         public static string RETURN_REASON = "RETURNREASON";
         public static string ORIGINAL_TRANSACTION_DATE = "ORIGTRANSDATE";
         public static string ORIGINAL_PAN = "ORIGPAN";
@@ -231,6 +230,8 @@ namespace GlobalPayments.Api.Terminals.PAX {
         public static string CARD_BIN = "CARDBIN";
         public static string SIGNATURE_STATUS = "SIGNSTATUS";
         public static string TERMINAL_VERIFICATION_RESULTS = "TVR";
+        public static string MERCHANT_ID = "MM_ID";
+        public static string MERCHANT_NAME = "MM_NAME";
     }
 
     internal class PAX_CHECK_SALE_TYPE {
@@ -266,7 +267,7 @@ namespace GlobalPayments.Api.Terminals.PAX {
         ChipFallBackSwipe
     }
 
-    internal enum CardType {
+    public enum TerminalCardType {
         VISA = 01,
         MASTERCARD = 02,
         AMEX = 03,
@@ -286,7 +287,7 @@ namespace GlobalPayments.Api.Terminals.PAX {
         OTHER = 99,
     }
 
-    internal enum TerminalTransactionType {
+    public enum TerminalTransactionType {
         MENU = 00,
         SALE = 01,
         RETURN = 02,
@@ -321,5 +322,16 @@ namespace GlobalPayments.Api.Terminals.PAX {
         CONVERT = 31,
         TOKENIZE = 32,
         REVERSAL = 99,
+    }
+
+    public enum PaxSearchCriteria {
+        TransactionType,
+        CardType,
+        RecordNumber,
+        TerminalReferenceNumber,
+        AuthCode,
+        ReferenceNumber,
+        MerchantId,
+        MerchantName
     }
 }

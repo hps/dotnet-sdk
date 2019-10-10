@@ -2,12 +2,12 @@
 using GlobalPayments.Api.Utils;
 
 namespace GlobalPayments.Api.Terminals.HPA.Responses {
-    internal class SipBatchResponse : SipBaseResponse, IBatchCloseResponse {
+    internal class BatchResponse : SipTerminalResponse, IBatchCloseResponse {
         public string SequenceNumber { get; set; }
         public string TotalCount { get; set; }
         public string TotalAmount { get; set; }
 
-        public SipBatchResponse(byte[] buffer, params string[] messageIds) : base(buffer, messageIds) { }
+        public BatchResponse(byte[] buffer, params string[] messageIds) : base(buffer, messageIds) { }
         internal override void MapResponse(Element response) {
             base.MapResponse(response);
 

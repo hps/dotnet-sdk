@@ -38,8 +38,12 @@ namespace GlobalPayments.Api.Terminals {
 
         internal abstract IDeviceInterface ConfigureInterface();
 
-        internal abstract TerminalResponse ProcessTransaction(TerminalAuthBuilder builder);
-        internal abstract TerminalResponse ManageTransaction(TerminalManageBuilder builder);
+        internal abstract ITerminalResponse ProcessTransaction(TerminalAuthBuilder builder);
+        internal abstract ITerminalResponse ManageTransaction(TerminalManageBuilder builder);
+        internal abstract ITerminalReport ProcessReport(TerminalReportBuilder builder);
+        internal abstract byte[] SerializeRequest(TerminalAuthBuilder builder);
+        internal abstract byte[] SerializeRequest(TerminalManageBuilder builder);
+        internal abstract byte[] SerializeRequest(TerminalReportBuilder builder);
 
         public void Dispose() {
             _interface?.Disconnect();

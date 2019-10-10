@@ -1,5 +1,6 @@
 ﻿using GlobalPayments.Api.Entities;
 using GlobalPayments.Api.PaymentMethods;
+using System.Collections.Generic;
 
 namespace GlobalPayments.Api.Builders {
     /// <summary>
@@ -42,6 +43,7 @@ namespace GlobalPayments.Api.Builders {
         internal string PayerAuthenticationResponse { get; set; }
         internal string PoNumber { get; set; }
         internal ReasonCode? ReasonCode { get; set;}
+        internal Dictionary<string, List<string[]>> SupplementaryData { get; set; }
         internal decimal? TaxAmount { get; set; }
         internal TaxType? TaxType { get; set; }
         internal string TransactionId {
@@ -183,6 +185,23 @@ namespace GlobalPayments.Api.Builders {
             return this;
         }
 
+        public ManagementBuilder WithSupplementaryData(string type, params string[] values) {
+            // create the dictionary
+            if (SupplementaryData == null) {
+                SupplementaryData = new Dictionary<string, List<string[]>>();
+            }
+
+            // add the key
+            if (!SupplementaryData.ContainsKey(type)) {
+                SupplementaryData.Add(type, new List<string[]>());
+            }
+
+            // add the values to it
+            SupplementaryData[type].Add(values);
+
+            return this;
+        }
+
         /// <summary>
         /// Sets the tax amount.
         /// </summary>
@@ -251,6 +270,13 @@ namespace GlobalPayments.Api.Builders {
                 .Check(() => Amount).IsNotNull()
                 .Check(() => Currency).IsNotNull()
                 .Check(() => OrderId).IsNotNull();
+
+            Validations.For(TransactionType.TokenDelete | TransactionType.TokenUpdate)
+                .Check(() => PaymentMethod).IsNotNull()
+                .Check(() => PaymentMethod).Is<ITokenizable>();
+
+            Validations.For(TransactionType.TokenUpdate)
+                .Check(() => PaymentMethod).Is<CreditCardData>();
         }
     }
 }

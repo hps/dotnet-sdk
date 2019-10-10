@@ -1,10 +1,12 @@
-﻿using GlobalPayments.Api.Entities;
+using GlobalPayments.Api.Entities;
+using GlobalPayments.Api.Terminals.Abstractions;
 using GlobalPayments.Api.Terminals.Builders;
 using GlobalPayments.Api.Terminals.HPA.Interfaces;
 using GlobalPayments.Api.Terminals.HPA.Responses;
 using GlobalPayments.Api.Terminals.Messaging;
 using GlobalPayments.Api.Utils;
 using System;
+using System.Text;
 
 namespace GlobalPayments.Api.Terminals.HPA {
     internal class HpaController : DeviceController {
@@ -42,11 +44,46 @@ namespace GlobalPayments.Api.Terminals.HPA {
         }
 
         internal T SendMessage<T>(string message, params string[] messageIds) where T : SipBaseResponse {
-            var response = _interface.Send(TerminalUtilities.BuildRequest(message, Format));
-            return (T)Activator.CreateInstance(typeof(T), response, messageIds);
+            return SendMessage<T>(message, false, true, messageIds);
+        }
+        internal T SendMessage<T>(string message, bool keepAlive, bool awaitResponse, params string[] messageIds) {
+            IDeviceMessage deviceMessage = TerminalUtilities.BuildRequest(message, Format);
+            deviceMessage.KeepAlive = keepAlive;
+            deviceMessage.AwaitResponse = awaitResponse;
+
+            var response = _interface.Send(deviceMessage);
+            if (awaitResponse) {
+                return (T)Activator.CreateInstance(typeof(T), response, messageIds);
+            }
+            else return default(T);
         }
 
-        internal override TerminalResponse ProcessTransaction(TerminalAuthBuilder builder) {
+        internal T SendAdminMessage<T>(HpaAdminBuilder builder) where T : SipBaseResponse {
+            int requestId = 1004;
+            if (RequestIdProvider != null) {
+                requestId = RequestIdProvider.GetRequestId();
+            }
+            builder.Set("RequestId", requestId);
+            return SendMessage<T>(builder.BuildMessage(), builder.KeepAlive, builder.AwaitResponse, builder.MessageIds);
+        }
+
+        internal override ITerminalResponse ProcessTransaction(TerminalAuthBuilder builder) {
+            var transactionType = MapTransactionType(builder.TransactionType);
+            var response = SendMessage<SipDeviceResponse>(BuildProcessTransaction(builder), transactionType);
+            return response;
+        }
+        
+        internal override ITerminalResponse ManageTransaction(TerminalManageBuilder builder) {
+            var transactionType = MapTransactionType(builder.TransactionType);
+            var response = SendMessage<SipDeviceResponse>(BuildManageTransaction(builder), transactionType);
+            return response;
+        }
+
+        internal override ITerminalReport ProcessReport(TerminalReportBuilder builder) {
+            throw new NotImplementedException();
+        }
+
+        internal string BuildProcessTransaction(TerminalAuthBuilder builder) {
             int requestId = builder.ReferenceNumber;
             if (requestId == default(int) && RequestIdProvider != null) {
                 requestId = RequestIdProvider.GetRequestId();
@@ -73,11 +110,10 @@ namespace GlobalPayments.Api.Terminals.HPA {
             // total
             et.SubElement(request, "TotalAmount").Text(builder.Amount.ToNumericCurrencyString());
 
-            var response = SendMessage<SipDeviceResponse>(et.ToString(request), transactionType);
-            return response;
+            return et.ToString(request);
         }
 
-        internal override TerminalResponse ManageTransaction(TerminalManageBuilder builder) {
+        internal string BuildManageTransaction(TerminalManageBuilder builder) {
             int requestId = builder.ReferenceNumber;
             if (requestId == default(int) && RequestIdProvider != null) {
                 requestId = RequestIdProvider.GetRequestId();
@@ -96,8 +132,17 @@ namespace GlobalPayments.Api.Terminals.HPA {
             if (builder.Gratuity != null)
                 et.SubElement(request, "TipAmount").Text(builder.Gratuity.ToNumericCurrencyString());
 
-            var response = SendMessage<SipDeviceResponse>(et.ToString(request), transactionType);
-            return response;
+            return et.ToString(request);
+        }
+
+        internal override byte[] SerializeRequest(TerminalAuthBuilder builder) {
+            return Encoding.UTF8.GetBytes(BuildProcessTransaction(builder));
+        }
+        internal override byte[] SerializeRequest(TerminalManageBuilder builder) {
+            return Encoding.UTF8.GetBytes(BuildManageTransaction(builder));
+        }
+        internal override byte[] SerializeRequest(TerminalReportBuilder builder) {
+            throw new NotImplementedException();
         }
 
         private string MapTransactionType(TransactionType type) {

@@ -103,6 +103,7 @@ namespace GlobalPayments.Api.Entities {
 
         public bool FullyCaptured { get; set; }
 
+        public decimal? CashBackAmount { get; set; }
         public decimal? GratuityAmount { get; set; }
 
         public bool HasEcomPaymentData { get; set; }
@@ -237,5 +238,13 @@ namespace GlobalPayments.Api.Entities {
         public string UniqueDeviceId { get; set; }
 
         public string Username { get; set; }
+
+        public string TransactionType { get; set; }
+
+        public string CardEntryMethod { get; set; }
+
+        public decimal? AmountDue { get; set; }
+
+        public bool HostTimeout { get; set; }
     }
 }

@@ -6,7 +6,6 @@ using GlobalPayments.Api.Entities;
 using GlobalPayments.Api.Terminals;
 using System.Globalization;
 using System.Security.Cryptography;
-using System.Threading.Tasks;
 
 namespace GlobalPayments.Api.Utils {
     public static class Extensions {
@@ -94,10 +93,12 @@ namespace GlobalPayments.Api.Utils {
                 Array.Copy(buffer, readBuffer, bytesReceived);
 
                 var code = (ControlCodes)readBuffer[0];
-                if (code == ControlCodes.NAK)
+                if (code == ControlCodes.NAK) {
                     return null;
-                else if (code == ControlCodes.EOT)
+                }
+                else if (code == ControlCodes.EOT) {
                     throw new MessageException("Terminal returned EOT for the current message.");
+                }
                 else if (code == ControlCodes.ACK) {
                     return stream.GetTerminalResponse();
                 }
@@ -150,6 +151,42 @@ namespace GlobalPayments.Api.Utils {
 
         public static byte[] GetVector(this Rfc2898DeriveBytes bytes) {
             return bytes.GetBytes(16);
+        }
+
+        public static T GetValue<T>(this Dictionary<string, string> dict, string key) {
+            try {
+                return (T)Convert.ChangeType(dict[key], typeof(T));
+            }
+            catch (KeyNotFoundException) {
+                return default(T);
+            }
+        }
+        public static decimal? GetAmount(this Dictionary<string, string> dict, string key) {
+            try {
+                return dict[key].ToAmount();
+            }
+            catch (KeyNotFoundException) {
+                return null;
+            }
+        }
+
+        public static bool? GetBoolean(this Dictionary<string, string> dict, string key) {
+            try {
+                return bool.TryParse(dict[key], out bool result);
+            }
+            catch (KeyNotFoundException) {
+                return null;
+            }
+        }
+
+        public static IEnumerable<string> SplitInMaxDataSize(this string str, int maxDataSize) {
+            if (string.IsNullOrEmpty(str)) {
+                yield return string.Empty;
+            }
+
+            for (var i = 0; i < str.Length; i += maxDataSize) {
+                yield return str.Substring(i, Math.Min(maxDataSize, str.Length - i));
+            }
         }
     }
 }

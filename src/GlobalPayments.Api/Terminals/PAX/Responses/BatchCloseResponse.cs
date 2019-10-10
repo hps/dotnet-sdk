@@ -4,7 +4,7 @@ using GlobalPayments.Api.Terminals.Abstractions;
 using GlobalPayments.Api.Terminals.Extensions;
 
 namespace GlobalPayments.Api.Terminals.PAX {
-    public class BatchCloseResponse : PaxDeviceResponse, IBatchCloseResponse {
+    public class BatchCloseResponse : PaxTerminalResponse, IBatchCloseResponse {
         private HostResponse hostResponse;
 
         public string TotalCount { get; set; }
@@ -14,7 +14,7 @@ namespace GlobalPayments.Api.Terminals.PAX {
         public string MID { get; set; }
         public string SequenceNumber { get; set; }
 
-        internal BatchCloseResponse(byte[] buffer)
+        public BatchCloseResponse(byte[] buffer)
             : base(buffer, PAX_MSG_ID.B01_RSP_BATCH_CLOSE) {
         }
 

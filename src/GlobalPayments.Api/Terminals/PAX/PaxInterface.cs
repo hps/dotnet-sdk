@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using GlobalPayments.Api.Terminals.Builders;
 using GlobalPayments.Api.Entities;
 using GlobalPayments.Api.Terminals.Abstractions;
@@ -31,21 +31,29 @@ namespace GlobalPayments.Api.Terminals.PAX {
             var response = controller.Send(TerminalUtilities.BuildRequest(PAX_MSG_ID.A08_GET_SIGNATURE,
                 0, ControlCodes.FS
             ));
-            return new SignatureResponse(response);
+            return new SignatureResponse(response, controller.DeviceType.Value);
         }
 
         // A14 - CANCEL
         public void Cancel() {
-            if (controller.ConnectionMode == ConnectionModes.HTTP)
+            if (controller.ConnectionMode == ConnectionModes.HTTP) {
                 throw new MessageException("The cancel command is not available in HTTP mode");
+            }
 
-            controller.Send(TerminalUtilities.BuildRequest(PAX_MSG_ID.A14_CANCEL));
+            try {
+                controller.Send(TerminalUtilities.BuildRequest(PAX_MSG_ID.A14_CANCEL));
+            }
+            catch (MessageException exc) {
+                if (!exc.Message.Equals("Terminal returned EOT for the current message.")) {
+                    throw;
+                }
+            }
         }
 
         // A16 - RESET
         public IDeviceResponse Reset() {
             var response = controller.Send(TerminalUtilities.BuildRequest(PAX_MSG_ID.A16_RESET));
-            return new PaxDeviceResponse(response, PAX_MSG_ID.A17_RSP_RESET);
+            return new PaxTerminalResponse(response, PAX_MSG_ID.A17_RSP_RESET);
         }
 
         // A20 - DO SIGNATURE
@@ -68,38 +76,71 @@ namespace GlobalPayments.Api.Terminals.PAX {
         // A26 - REBOOT
         public IDeviceResponse Reboot() {
             var response = controller.Send(TerminalUtilities.BuildRequest(PAX_MSG_ID.A26_REBOOT));
-            return new PaxDeviceResponse(response, PAX_MSG_ID.A27_RSP_REBOOT);
+            return new PaxTerminalResponse(response, PAX_MSG_ID.A27_RSP_REBOOT);
         }
 
+        // A04 - SET VARIABLE
         public IDeviceResponse DisableHostResponseBeep() {
             var response = controller.Send(TerminalUtilities.BuildRequest(PAX_MSG_ID.A04_SET_VARIABLE,
-                "00",
+                "01",
                 ControlCodes.FS,
                 "hostRspBeep",
                 ControlCodes.FS,
-                "N"
+                "N",
+                ControlCodes.FS,
+                ControlCodes.FS,
+                ControlCodes.FS,
+                ControlCodes.FS,
+                ControlCodes.FS,
+                ControlCodes.FS,
+                ControlCodes.FS,
+                ControlCodes.FS,
+                ControlCodes.FS
             ));
-            return new PaxDeviceResponse(response, PAX_MSG_ID.A05_RSP_SET_VARIABLE);
+            return new PaxTerminalResponse(response, PAX_MSG_ID.A05_RSP_SET_VARIABLE);
         }
 
         public IDeviceResponse CloseLane() {
-            if(controller.DeviceType == DeviceType.PAX_S300)
-                throw new UnsupportedTransactionException("The S300 does not support this call.");
-            throw new UnsupportedTransactionException();
+            throw new UnsupportedTransactionException("This function is not supported by the currently configured device.");
         }
 
         public IDeviceResponse OpenLane() {
-            if (controller.DeviceType == DeviceType.PAX_S300)
-                throw new UnsupportedTransactionException("The S300 does not support this call.");
+            throw new UnsupportedTransactionException("This function is not supported by the currently configured device.");
+        }
+
+        public IDeviceResponse StartCard(PaymentMethodType paymentMethodType) {
+            throw new UnsupportedTransactionException("This function is not supported by the currently configured device.");
+        }
+
+        public ISAFResponse SendStoreAndForward() {
             throw new UnsupportedTransactionException();
+        }
+
+        public IDeviceResponse LineItem(string leftText, string rightText = null, string runningLeftText = null, string runningRightText = null) {
+            throw new UnsupportedTransactionException("This function is not supported by the currently configured device.");
+        }
+
+        public IDeviceResponse SetStoreAndForwardMode(bool enabled) {
+            throw new UnsupportedTransactionException("This function is not supported by the currently configured device.");
+        }
+
+        public IDeviceResponse SendFile(SendFileType fileType, string filePath) {
+            throw new UnsupportedTransactionException("This function is not supported by the currently configured device.");
+        }
+
+        public IEODResponse EndOfDay() {
+            throw new UnsupportedTransactionException("PAX does not support the EOD option");
         }
 
         public string SendCustomMessage(DeviceMessage message) {
             var response = controller.Send(message);
             return Encoding.UTF8.GetString(response);
         }
-        public IDeviceResponse StartCard(PaymentMethodType paymentMethodType) {
-            throw new UnsupportedTransactionException("PAX does not support the start card option.");
+        #endregion
+
+        #region Reporting Messages
+        public TerminalReportBuilder LocalDetailReport() {
+            return new TerminalReportBuilder(TerminalReportType.LocalDetailReport);
         }
         #endregion
 

@@ -20,6 +20,15 @@ namespace GlobalPayments.Api.Terminals {
         IDeviceResponse Reset();
         string SendCustomMessage(DeviceMessage message);
         IDeviceResponse StartCard(PaymentMethodType paymentMethodType);
+        ISAFResponse SendStoreAndForward();
+        IDeviceResponse LineItem(string leftText, string rightText = null, string runningLeftText = null, string runningRightText = null);
+        IDeviceResponse SetStoreAndForwardMode(bool enabled);
+        IDeviceResponse SendFile(SendFileType fileType, string filePath);
+        IEODResponse EndOfDay();
+        #endregion
+
+        #region reporting
+        TerminalReportBuilder LocalDetailReport();
         #endregion
 
         #region Batch Calls

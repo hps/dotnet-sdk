@@ -27,9 +27,26 @@ namespace GlobalPayments.Api.Entities {
     /// </summary>
     public enum DeviceType {
         /// <summary>
+        /// Indicates PAX D200 device.
+        /// </summary>
+        PAX_D200,
+        /// <summary>
+        /// INdicates PAX D210 device.
+        /// </summary>
+        PAX_D210,
+        /// <summary>
         /// Indicates a Pax S300 device.
         /// </summary>
         PAX_S300,
+        /// <summary>
+        /// Indicates PAX PX5 device.
+        /// </summary>
+        PAX_PX5,
+        /// <summary>
+        /// Indicates PAX PX7 device.
+        /// </summary>
+        PAX_PX7,
+
         /// <summary>
         /// Indicates a HeeartSIP iSC250 device.
         /// </summary>
@@ -308,7 +325,42 @@ namespace GlobalPayments.Api.Entities {
         /// <summary>
         /// Indicates a verify 3d secure verify signature transaction
         /// </summary>
-        VerifySignature = 1 << 24
+        VerifySignature = 1 << 24,
+
+        /// <summary>
+        /// Indcates a TokenUpdateExpiry Transaction
+        /// </summary>
+        TokenUpdate = 1 << 25,
+
+        /// <summary>
+        /// Indicates a Token Delete Transaction
+        /// </summary>
+        TokenDelete = 1 << 26,
+
+        /// <summary>
+        /// Indicates a verify authentication 3DS2 call
+        /// </summary>
+        VerifyAuthentication = 1 << 27,
+
+        /// <summary>
+        /// Indicates an Initiate Authentication 3DS2 call
+        /// </summary>
+        InitiateAuthentication = 1 << 28,
+
+        /// <summary>
+        /// 
+        /// </summary>
+        DataCollect = 1 << 29,
+
+        /// <summary>
+        /// 
+        /// </summary>
+        PreAuthCompletion = 1 << 30,
+
+        /// <summary>
+        /// 
+        /// </summary>
+        DccRateLookup = 1 << 31
     }
 
     /// <summary>
@@ -729,11 +781,10 @@ namespace GlobalPayments.Api.Entities {
     /// <summary>
     /// Indicates the GooglePay and ApplePay.
     /// </summary>
-    public static class MobilePaymentMethodType
-    {
+    public static class MobilePaymentMethodType {
         public const string APPLEPAY = "apple-pay";
         public const string GOOGLEPAY = "pay-with-google";
-        
+
     }
 
     /// <summary>
@@ -948,5 +999,130 @@ namespace GlobalPayments.Api.Entities {
         public const string TRANSACTION = "transaction";
         public const string DEPOSIT = "deposit";
         public const string DISPUTE = "dispute";
+    }
+
+    public enum ApplicationCryptogramType {
+        TC,
+        ARQC
+    }
+
+    internal static class SAFReportType {
+        public const string APPROVED = "APPROVED SAF SUMMARY";
+        public const string PENDING = "PENDING SAF SUMMARY";
+        public const string DECLINED = "DECLINED SAF SUMMARY";
+        public const string OFFLINE_APPROVED = "OFFLINE APPROVED SAF SUMMARY";
+        public const string PARTIALLY_APPROVED = "PARTIALLY APPROVED  SAF SUMMARY";
+        public const string APPROVED_VOID = "APPROVED SAF VOID SUMMARY";
+        public const string PENDING_VOID = "PENDING SAF VOID SUMMARY";
+        public const string DECLINED_VOID = "DECLINED SAF VOID SUMMARY";
+    }
+
+    public enum ChallengeRequestIndicator {
+        NO_PREFERENCE,
+        NO_CHALLENGE_REQUESTED,
+        CHALLENGE_PREFERRED,
+        CHALLENGE_MANDATED
+    }
+
+    internal static class EODCommandType {
+        public const string END_OF_DAY = "EOD";
+        public const string REVERSAL = "Reversal";
+        public const string EMV_OFFLINE_DECLINE = "EMVOfflineDecline";
+        public const string TRANSACTION_CERTIFICATE = "TransactionCertificate";
+        public const string ATTACHMENT = "Attachment";
+        public const string SENDSAF = "SendSAF";
+        public const string BATCH_CLOSE = "BatchClose";
+        public const string HEARTBEAT = "Heartbeat";
+        public const string EMV_PARAMETER_DOWNLOAD = "EMVPDL";
+        public const string EMV_CRYPTOGRAM_TYPE = "EMVTC";
+        public const string GET_BATCH_REPORT = "GetBatchReport";
+    }
+
+    internal static class CardSummaryType {
+        public const string VISA = "VISA CARD SUMMARY";
+        public const string MC = "MASTERCARD CARD SUMMARY";
+        public const string AMEX = "AMERICAN EXPRESS CARD SUMMARY";
+        public const string DISCOVER = "DISCOVER CARD SUMMARY";
+        public const string PAYPAL = "PAYPAL CARD SUMMARY";
+    }
+
+    public enum SendFileType {
+        Banner,
+        Logo
+    }
+
+    public enum AuthenticationRequestType {
+        PAYMENT_TRANSACTION,
+        RECURRING_TRANSACTION,
+        INSTALLMENT_TRANSACTION,
+        ADD_CARD,
+        MAINTAIN_CARD,
+        CARDHOLDER_VERIFICATION
+    }
+
+    public enum AuthenticationSource {
+        BROWSER,
+        STORED_RECURRING,
+        MOBILE_SDK
+    }
+
+    public enum ChallengeWindowSize {
+        WINDOWED_250X400,
+        WINDOWED_390X400,
+        WINDOWED_500X600,
+        WINDOWED_600X400,
+        FULL_SCREEN
+    }
+
+    public enum ColorDepth {
+        ONE_BIT,
+        TWO_BITS,
+        FOUR_BITS,
+        EIGHT_BITS,
+        FIFTEEN_BITS,
+        SIXTEEN_BITS,
+        TWENTY_FOUR_BITS,
+        THIRTY_TWO_BITS,
+        FORTY_EIGHT_BITS
+    }
+
+    public enum Environment {
+        TEST,
+        PRODUCTION
+    }
+
+    public enum MessageCategory {
+        PAYMENT_AUTHENTICATION,
+        NON_PAYMENT_AUTHENTICATION
+    }
+
+    public static class MessageVersion {
+        public const string VERSION_210 = "2.1.0";
+    }
+
+    public enum MethodUrlCompletion {
+        YES,
+        NO,
+        UNAVAILABLE
+    }
+
+    public enum Secure3dVersion {
+        None,
+        One,
+        Two,
+        Any
+    }
+
+    public static class ServiceEndpoints {
+        public const string GLOBAL_ECOM_PRODUCTION = "https://api.realexpayments.com/epage-remote.cgi";
+        public const string GLOBAL_ECOM_TEST = "https://api.sandbox.realexpayments.com/epage-remote.cgi";
+        public const string PORTICO_PRODUCTION = "https://api2.heartlandportico.com";
+        public const string PORTICO_TEST = "https://cert.api2.heartlandportico.com";
+        public const string THREE_DS_AUTH_PRODUCTION = "https://api.globalpay-ecommerce.com/3ds2/";
+        public const string THREE_DS_AUTH_TEST = "https://api.sandbox.globalpay-ecommerce.com/3ds2/";
+        public const string PAYROLL_PRODUCTION = "https://taapi.heartlandpayrollonlinetest.com/PosWebUI";
+        public const string PAYROLL_TEST = "https://taapi.heartlandpayrollonlinetest.com/PosWebUI/Test/Test";
+        public const string TABLE_SERVICE_PRODUCTION = "https://www.freshtxt.com/api31/";
+        public const string TABLE_SERVICE_TEST = "https://www.freshtxt.com/api31/";
     }
 }

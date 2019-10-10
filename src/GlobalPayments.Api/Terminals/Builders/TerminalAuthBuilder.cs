@@ -1,6 +1,7 @@
 ﻿using GlobalPayments.Api.Builders;
 using GlobalPayments.Api.Entities;
 using GlobalPayments.Api.PaymentMethods;
+using GlobalPayments.Api.Terminals.Abstractions;
 
 namespace GlobalPayments.Api.Terminals.Builders {
     public class TerminalAuthBuilder : TerminalBuilder<TerminalAuthBuilder> {
@@ -14,6 +15,7 @@ namespace GlobalPayments.Api.Terminals.Builders {
                 return null;
             }
         }
+        internal AutoSubstantiation AutoSubstantiation { get; set; }
         internal decimal? CashBackAmount { get; set; }
         internal string ClientTransactionId { get; set; }
         internal CurrencyType? Currency { get; set; }
@@ -50,6 +52,16 @@ namespace GlobalPayments.Api.Terminals.Builders {
             if (PaymentMethod == null || !(PaymentMethod is TransactionReference))
                 PaymentMethod = new TransactionReference();
             (PaymentMethod as TransactionReference).AuthCode = value;
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the auto subtantiation values for the transaction.
+        /// </summary>
+        /// <param name="value">The auto substantiation object</param>
+        /// <returns>TerminalAuthBuilder</returns>
+        public TerminalAuthBuilder WithAutoSubstantiation(AutoSubstantiation value) {
+            AutoSubstantiation = value;
             return this;
         }
         public TerminalAuthBuilder WithCashBack(decimal? amount) {
@@ -117,11 +129,18 @@ namespace GlobalPayments.Api.Terminals.Builders {
         internal TerminalAuthBuilder(TransactionType type, PaymentMethodType paymentType) : base(type, paymentType) {
         }
 
-        public override TerminalResponse Execute(string configName = "default") {
+        public override ITerminalResponse Execute(string configName = "default") {
             base.Execute(configName);
 
             var device = ServicesContainer.Instance.GetDeviceController(configName);
             return device.ProcessTransaction(this);
+        }
+
+        public override byte[] Serialize(string configName = "default") {
+            base.Execute();
+
+            var device = ServicesContainer.Instance.GetDeviceController(configName);
+            return device.SerializeRequest(this);
         }
 
         protected override void SetupValidations() {

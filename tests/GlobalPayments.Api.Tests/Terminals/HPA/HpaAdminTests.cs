@@ -1,27 +1,22 @@
-﻿using System;
-using System.Diagnostics;
-using GlobalPayments.Api.Entities;
+﻿using GlobalPayments.Api.Entities;
 using GlobalPayments.Api.Services;
 using GlobalPayments.Api.Terminals;
-using GlobalPayments.Api.Utils;
+using GlobalPayments.Api.Terminals.HPA.Responses;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.IO;
 
-namespace GlobalPayments.Api.Tests.Terminals.HPA
-{
+namespace GlobalPayments.Api.Tests.Terminals.HPA {
     [TestClass]
-    public class HpaAdminTests
-    {
+    public class HpaAdminTests {
         IDeviceInterface _device;
         public HpaAdminTests() {
-            _device = DeviceService.Create(new ConnectionConfig
-            {
+            _device = DeviceService.Create(new ConnectionConfig {
                 DeviceType = DeviceType.HPA_ISC250,
                 ConnectionMode = ConnectionModes.TCP_IP,
                 IpAddress = "10.12.220.39",
+                //IpAddress = "192.168.0.94",
                 Port = "12345",
-                Timeout = 60000,
-                RequestIdProvider = new RequestIdProvider()
+                Timeout = 20000,
+                RequestIdProvider = new RandomIdProvider()
             });
             Assert.IsNotNull(_device);
         }
@@ -60,16 +55,17 @@ namespace GlobalPayments.Api.Tests.Terminals.HPA
             Assert.AreEqual("00", response.DeviceResponseCode);
         }
 
-        [TestMethod, Ignore]
+        [TestMethod]
         public void Reboot() {
-            _device.Reset();
+            var response = _device.Reboot();
+            Assert.IsNotNull(response);
+            Assert.AreEqual("00", response.DeviceResponseCode);
         }
 
         [TestMethod]
         public void BatchClose() {
             _device.CloseLane();
-            _device.OnMessageSent += (message) =>
-            {
+            _device.OnMessageSent += (message) => {
                 Assert.AreEqual(message, "<SIP><Version>1.0</Version><ECRId>1004</ECRId><Request>CloseBatch</Request></SIP>");
             };
 
@@ -85,11 +81,10 @@ namespace GlobalPayments.Api.Tests.Terminals.HPA
 
         [TestMethod]
         public void GetSignature_Indirect() {
-            _device.OnMessageSent += (message) =>
-            {
+            _device.OnMessageSent += (message) => {
                 Assert.IsNotNull(message);
             };
-            var response = _device.CreditSale( 120m)
+            var response = _device.CreditSale(120m)
                .WithSignatureCapture(true)
                .Execute();
             Assert.IsNotNull(response);
@@ -109,6 +104,46 @@ namespace GlobalPayments.Api.Tests.Terminals.HPA
 
             _device.Reset();
             _device.CloseLane();
+        }
+
+        [TestMethod]
+        public void SendStoreAndForward() {
+            var response = _device.SendStoreAndForward();
+            Assert.IsNotNull(response);
+            Assert.AreEqual("00", response.DeviceResponseCode);
+        }
+        
+        [TestMethod]
+        public void LineItem() {
+            var response = _device.LineItem("Green Beans");
+            Assert.IsNotNull(response);
+            Assert.AreEqual("00", response.DeviceResponseCode);
+        }
+
+        [TestMethod]
+        public void LineItemWithParams() {
+            var response = _device.LineItem("Green Beans", "$0.59", "TOTAL", "$1.19");
+            Assert.IsNotNull(response);
+            Assert.AreEqual("00", response.DeviceResponseCode);
+        }
+
+        [TestMethod]
+        public void EnableStoreAndForwardMode() {
+            var response = _device.SetStoreAndForwardMode(true);
+            Assert.IsNotNull(response);
+            Assert.AreEqual("00", response.DeviceResponseCode);
+        }
+
+        [TestMethod]
+        public void SendFile() {
+            try {
+                SipSendFileResponse response = (SipSendFileResponse)_device.SendFile(SendFileType.Logo, @"C:\temp\IDLELOGO.JPG");
+                Assert.IsNotNull(response);
+                Assert.AreEqual("00", response.DeviceResponseCode);
+            }
+            catch (ApiException exc) {
+                Assert.Fail(exc.Message);
+            }
         }
     }
 }

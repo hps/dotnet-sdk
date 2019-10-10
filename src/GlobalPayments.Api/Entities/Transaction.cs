@@ -103,6 +103,8 @@ namespace GlobalPayments.Api.Entities {
         /// </summary>
         public string CvnResponseMessage { get; set; }
 
+        public DccRateData DccRateData { get; set; }
+
         public DebitMac DebitMac { get; set; }
 
         /// <summary>
@@ -181,6 +183,8 @@ namespace GlobalPayments.Api.Entities {
         /// A catch all for additional fields not mapped to a specific transaction properties.
         /// </summary>
         public Dictionary<string, string> ResponseValues { get; set; }
+
+        public string SchemeId { get; set; }
 
         internal ThreeDSecure ThreeDSecure { get; set; }
 

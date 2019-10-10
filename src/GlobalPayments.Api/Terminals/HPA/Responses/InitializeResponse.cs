@@ -4,12 +4,12 @@ using GlobalPayments.Api.Terminals.Abstractions;
 using GlobalPayments.Api.Utils;
 
 namespace GlobalPayments.Api.Terminals.HPA.Responses {
-    public class SipInitializeResponse : SipBaseResponse, IInitializeResponse {
+    public class InitializeResponse : SipBaseResponse, IInitializeResponse {
         private Dictionary<string, Dictionary<string, string>> _params;
 
         public string SerialNumber { get; set; }
 
-        public SipInitializeResponse(byte[] buffer, params string[] messageIds) : base(buffer, messageIds) { }
+        public InitializeResponse(byte[] buffer, params string[] messageIds) : base(buffer, messageIds) { }
 
         internal override void MapResponse(Element response) {
             base.MapResponse(response);
