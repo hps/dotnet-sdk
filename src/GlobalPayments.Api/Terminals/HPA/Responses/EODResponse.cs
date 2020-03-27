@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using GlobalPayments.Api.Entities;
 using GlobalPayments.Api.Terminals.Abstractions;
@@ -131,7 +129,7 @@ namespace GlobalPayments.Api.Terminals.HPA.Responses {
 
         public EODResponse(byte[] buffer, params string[] messageIds) : base(buffer, messageIds) {
             if (_sendSafMessageBuilder != null) {
-                String messages = _sendSafMessageBuilder.ToString();
+                string messages = _sendSafMessageBuilder.ToString();
                 if (!string.IsNullOrEmpty(messages)) {
                     try {
                         SAFResponse = new SAFResponse(Encoding.UTF8.GetBytes(messages), EODCommandType.SENDSAF);
@@ -143,7 +141,7 @@ namespace GlobalPayments.Api.Terminals.HPA.Responses {
             }
 
             if (_batchReportMessageBuilder != null) {
-                String messages = _batchReportMessageBuilder.ToString();
+                string messages = _batchReportMessageBuilder.ToString();
                 if (!string.IsNullOrEmpty(messages)) {
                     try {
                         BatchReportResponse = new BatchReportResponse(Encoding.UTF8.GetBytes(messages), EODCommandType.GET_BATCH_REPORT);
@@ -156,22 +154,20 @@ namespace GlobalPayments.Api.Terminals.HPA.Responses {
         }
 
         internal override void MapResponse(Element response) {
-           base.MapResponse(response);
-            
+            base.MapResponse(response);
+
             if (Command.Equals(EODCommandType.SENDSAF, StringComparison.OrdinalIgnoreCase)) {
                 if (_sendSafMessageBuilder == null) {
                     _sendSafMessageBuilder = new StringBuilder();
                 }
                 _sendSafMessageBuilder.Append(currentMessage).Append('\r');
             }
-
             else if (Command.Equals(EODCommandType.GET_BATCH_REPORT, StringComparison.OrdinalIgnoreCase)) {
                 if (_batchReportMessageBuilder == null) {
                     _batchReportMessageBuilder = new StringBuilder();
                 }
                 _batchReportMessageBuilder.Append(currentMessage).Append('\r');
             }
-
             else if (Command.Equals(EODCommandType.HEARTBEAT, StringComparison.OrdinalIgnoreCase)) {
                 try {
                     HeartBeatResponse = new HeartBeatResponse(Encoding.UTF8.GetBytes(currentMessage), EODCommandType.HEARTBEAT);
@@ -180,7 +176,6 @@ namespace GlobalPayments.Api.Terminals.HPA.Responses {
                     batchReportResponseText = exc.Message;
                 }
             }
-
             else if (Command.Equals(EODCommandType.END_OF_DAY, StringComparison.OrdinalIgnoreCase)) {
                 AttachmentResponseText = response.GetValue<string>("Attachment");
                 BatchCloseResponseText = response.GetValue<string>("BatchClose");
@@ -192,7 +187,6 @@ namespace GlobalPayments.Api.Terminals.HPA.Responses {
                 SafResponseText = response.GetValue<string>("SendSAF");
                 BatchReportResponseText = response.GetValue<string>("GetBatchReport");
             }
-
             else {
                 try {
                     SipBaseResponse subResponse = new SipBaseResponse(Encoding.UTF8.GetBytes(currentMessage), Command);

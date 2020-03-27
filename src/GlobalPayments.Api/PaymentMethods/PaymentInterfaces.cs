@@ -20,6 +20,11 @@ namespace GlobalPayments.Api.PaymentMethods
     }
 
     public interface ITrackData {
+        string Expiry { get; set; }
+        string Pan { get; set; }
+        TrackNumber TrackNumber { get; set; }
+        string TrackData { get; set; }
+        string DiscretionaryData { get; set; }
         string Value { get; set; }
         EntryMethod EntryMethod { get; set; }
     }
@@ -62,9 +67,9 @@ namespace GlobalPayments.Api.PaymentMethods
 
     interface ITokenizable {
         string Token { get; set; }
-        string Tokenize();
-        bool UpdateTokenExpiry();
-        bool DeleteToken();
+        string Tokenize(string configName = "default");
+        bool UpdateTokenExpiry(string configName = "default");
+        bool DeleteToken(string configName = "default");
     }
 
     interface IVerifiable {

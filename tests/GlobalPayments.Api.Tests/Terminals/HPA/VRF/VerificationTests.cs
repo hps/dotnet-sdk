@@ -1,5 +1,4 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Threading;
 using GlobalPayments.Api.Entities;
 using GlobalPayments.Api.Services;
@@ -57,7 +56,7 @@ namespace GlobalPayments.Api.Tests.Terminals.HPA.VRF {
         */
         [TestMethod]
         public void TestCase01() {
-            var response = _device.CreditSale(23m)
+            var response = _device.Sale(23m)
                 .WithSignatureCapture(true)
                 .WithAllowDuplicates(true)
                 .Execute();
@@ -94,7 +93,7 @@ namespace GlobalPayments.Api.Tests.Terminals.HPA.VRF {
         */
         [TestMethod]
         public void TestCase03() {
-            var response = _device.CreditSale(25m)
+            var response = _device.Sale(25m)
                 .WithAllowDuplicates(true)
                 .Execute();
             Assert.IsNotNull(response);
@@ -121,7 +120,7 @@ namespace GlobalPayments.Api.Tests.Terminals.HPA.VRF {
                 Assert.IsNotNull(message);
             };
 
-            var response = _device.CreditSale(90.08m)
+            var response = _device.Sale(90.08m)
                 .WithAllowDuplicates(true)
                 .Execute();
             Assert.IsNotNull(response);
@@ -146,7 +145,7 @@ namespace GlobalPayments.Api.Tests.Terminals.HPA.VRF {
         */
         [TestMethod]
         public void TestCase05() {
-            var response = _device.CreditSale(155m)
+            var response = _device.Sale(155m)
                 .WithAllowDuplicates(true)
                 .Execute();
             Assert.IsNotNull(response);
@@ -167,13 +166,13 @@ namespace GlobalPayments.Api.Tests.Terminals.HPA.VRF {
         */
         [TestMethod]
         public void TestCase06() {
-            var response = _device.CreditSale(10m)
+            var response = _device.Sale(10m)
                 .WithAllowDuplicates(true)
                 .Execute();
             Assert.IsNotNull(response);
             Assert.AreEqual("00", response.ResponseCode);
 
-            var voidResponse = _device.CreditVoid()
+            var voidResponse = _device.Void()
                 .WithTransactionId(response.TransactionId)
                 .Execute();
             Assert.IsNotNull(voidResponse);
@@ -244,7 +243,7 @@ namespace GlobalPayments.Api.Tests.Terminals.HPA.VRF {
         */
         [TestMethod]
         public void TestCase09() {
-            var response = _device.CreditRefund(9m)
+            var response = _device.Refund(9m)
                 .WithAllowDuplicates(true)
                 .Execute();
              Assert.IsNotNull(response);
@@ -274,7 +273,9 @@ namespace GlobalPayments.Api.Tests.Terminals.HPA.VRF {
         */
         [TestMethod]
         public void TestCase10a() {
-            var response = _device.GiftBalance().Execute();
+            var response = _device.Balance()
+                .WithPaymentMethodType(PaymentMethodType.Gift)
+                .Execute();
             Assert.IsNotNull(response);
             Assert.AreEqual("00", response.ResponseCode);
             Assert.AreEqual(10m, response.BalanceAmount);
@@ -285,9 +286,10 @@ namespace GlobalPayments.Api.Tests.Terminals.HPA.VRF {
 
         [TestMethod]
         public void TestCase10b() {
-            var response = _device.GiftAddValue()
-                .WithAmount(8m)
-                .Execute();
+            var response = _device.AddValue()
+                .WithPaymentMethodType(PaymentMethodType.Gift)
+               .WithAmount(8m)
+               .Execute();
             Assert.IsNotNull(response);
             Assert.AreEqual("00", response.ResponseCode);
 
@@ -297,7 +299,8 @@ namespace GlobalPayments.Api.Tests.Terminals.HPA.VRF {
 
         [TestMethod]
         public void TestCase10c() {
-            var response = _device.GiftSale(1m)
+            var response = _device.Sale(1m)
+                .WithPaymentMethodType(PaymentMethodType.Gift)
                 .WithAllowDuplicates(true)
                 .Execute();
             Assert.IsNotNull(response);
@@ -337,7 +340,8 @@ namespace GlobalPayments.Api.Tests.Terminals.HPA.VRF {
 
         [TestMethod]
         public void TestCase11a() {
-            var response = _device.EbtPurchase(101.01m)
+            var response = _device.Sale(101.01m)
+                .WithPaymentMethodType(PaymentMethodType.EBT)
                 .WithAllowDuplicates(true)
                 .Execute();
             Assert.IsNotNull(response);
@@ -349,7 +353,9 @@ namespace GlobalPayments.Api.Tests.Terminals.HPA.VRF {
 
         [TestMethod]
         public void TestCase11b() {
-            var response = _device.EbtRefund(104.01m).Execute();
+            var response = _device.Refund(104.01m)
+                .WithPaymentMethodType(PaymentMethodType.EBT)
+                .Execute();
             Assert.IsNotNull(response);
             Assert.AreEqual("00", response.ResponseCode, response.DeviceResponseText);
 
@@ -359,7 +365,9 @@ namespace GlobalPayments.Api.Tests.Terminals.HPA.VRF {
 
         [TestMethod]
         public void TestCase11c() {
-            var response = _device.EbtBalance().Execute();
+            var response = _device.Balance()
+                .WithPaymentMethodType(PaymentMethodType.EBT)
+                .Execute();
             Assert.IsNotNull(response);
             Assert.AreEqual("00", response.ResponseCode);
 
@@ -382,7 +390,8 @@ namespace GlobalPayments.Api.Tests.Terminals.HPA.VRF {
         */
         [TestMethod]
         public void TestCase12a() {
-            var response = _device.EbtPurchase(101.01m)
+            var response = _device.Sale(101.01m)
+                .WithPaymentMethodType(PaymentMethodType.EBT)
                 .WithAllowDuplicates(true)
                 .Execute();
             Assert.IsNotNull(response);
@@ -394,7 +403,9 @@ namespace GlobalPayments.Api.Tests.Terminals.HPA.VRF {
 
         [TestMethod]
         public void TestCase12b() { 
-            var response = _device.EbtBalance().Execute();
+            var response = _device.Balance()
+                .WithPaymentMethodType(PaymentMethodType.EBT)
+                .Execute();
             Assert.IsNotNull(response);
             Assert.AreEqual("00", response.ResponseCode);
 
