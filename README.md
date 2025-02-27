@@ -1,3 +1,6 @@
+# ** This repository is no longer maintained! ** 
+Our current dotnet SDK can be found <a href="https://github.com/globalpayments/dotnet-sdk" target="_blank">here</a>
+
 <a href="https://github.com/globalpayments" target="_blank">
     <img src="https://globalpayments.github.io/images/globapaymentsLogo.png" alt="Global Payments logo" title="Global Payments" align="right" width="225" />
 </a>
